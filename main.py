@@ -3,7 +3,6 @@ import base64
 from columnar import columnar
 from requests.api import get
 
-# curl -X "POST" -H "Authorization: Basic ZjM4ZjAw...WY0MzE=" -d grant_type=client_credentials https://accounts.spotify.com/api/token
 
 authentication_url = "https://accounts.spotify.com/api/token"
 authentication_header = {}
@@ -12,29 +11,27 @@ authentication_data = {}
 
 def getAccessToken(clientID, clientSecret):
     # Encode Client ID & Client Secret
-    # https://stackabuse.com/encoding-and-decoding-base64-strings-in-python/
     message = clientID + ":" + clientSecret
     message_bytes = message.encode('ascii')
     base64_bytes = base64.b64encode(message_bytes)
     base64_message = base64_bytes.decode('ascii')
-    # print(base64_message)
 
     # Create URL and get response status
     authentication_header["Authorization"] = "Basic " + base64_message
     authentication_data["grant_type"] = "client_credentials"
     url_response = requests.post(authentication_url, headers=authentication_header, data=authentication_data)
-    # print(url_response)
 
+    # Return useful data (access token or None)
     if url_response.status_code != 200:
         return None
     else:
         # Get Access Token
         url_data = url_response.json()
-        # print(json.dumps(url_data, indent=2))
         access_token = url_data["access_token"]
         return access_token
 
 
+# Function to get the playlist by athenticating with the access token
 def getPlaylistTracks(access_token, playlistID):
     # Create Endpoint URL
     playlistEndpoint = "https://api.spotify.com/v1/playlists/" + playlistID
@@ -56,7 +53,7 @@ def getPlaylistTracks(access_token, playlistID):
 ##     Main Programe                          ##
 ################################################
 
-# API Requests
+# API Requests + Check User Authentication
 user_clientID = input("Enter your Spotify Client ID: ")
 user_ClientSecret = input("Enter your Spotify Client Secret code: ")
 access_token = getAccessToken(user_clientID, user_ClientSecret)
@@ -69,15 +66,18 @@ else:
     # Get user playlist
     user_playlist_url = input("Enter the playlist url (enter 'quit' or 'exit' to stop): ")
 
+    # While user doesn't enter "quit" or "exit" keep asking for a playlist url
     while user_playlist_url:
         if user_playlist_url.lower() in ["quit", "exit"]:
             user_playlist_url = False
         else:
+            # Check for valid urls
             check_playlist_url = user_playlist_url.find("https://open.spotify.com/playlist/")
             if check_playlist_url == -1:
                 print("Playlist not found! \n")
                 user_playlist_url = input("Enter the playlist url (enter 'quit' or 'exit' to stop): ")
             else:
+                # If user url is valid strip first part and store the playlist ID
                 playlistID = user_playlist_url.lstrip("https://open.spotify.com/playlist/")
 
                 # Json Data from playlist
