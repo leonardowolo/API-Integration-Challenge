@@ -1,4 +1,4 @@
-# API-Integration-School
+# API Integration Challenge
 A school assignment for the subject Emerging Technologies. 
 
 ## Installation
